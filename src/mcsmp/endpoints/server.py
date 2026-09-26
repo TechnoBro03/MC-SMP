@@ -6,6 +6,10 @@ from mcsmp.schemas import ServerState, SystemMessage
 if TYPE_CHECKING:
 	from mcsmp.client import Client
 
+def remove_nones(fields):
+	"""Helper to remove fields that are None in dataclasses"""
+	return {key: value for key, value in fields if value is not None}
+
 class Server:
 	"""Server endpoints."""
 
@@ -65,7 +69,7 @@ class Server:
 		:return: True if the message was sent.
 		:rtype: bool
 		"""
-		params = {"message": asdict(message)}
+		params = {"message": asdict(message, dict_factory=remove_nones)}
 		response = await self._client.request(f"{self.method}/system_message", params=params)
 		return response
 
