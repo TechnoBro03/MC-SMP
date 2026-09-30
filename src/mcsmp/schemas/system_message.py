@@ -6,11 +6,11 @@ from .message import Message
 class SystemMessage:
 	"""A system message."""
 
-	receivingPlayers: list[Player]
-	"""The players receiving the system message."""
-
 	overlay: bool
 	"""Whether the message is an overlay."""
 
 	message: Message
 	"""The message content."""
+
+	receivingPlayers: list[Player] | None = None
+	"""The players receiving the system message, or all players if omitted."""

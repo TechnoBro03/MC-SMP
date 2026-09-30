@@ -4,11 +4,15 @@ from pydantic.dataclasses import dataclass
 class Message:
 	"""A message."""
 
-	translatable: str
+	translatable: str | None = None
 	"""The translatable key."""
 
-	translatableParams: list[str]
+	translatableParams: list[str] | None = None
 	"""The parameters for the translatable key."""
 
-	literal: str
+	literal: str | None = None
 	"""The literal message."""
+
+	def __post_init__(self) -> None:
+		if self.translatable is None and self.literal is None:
+			raise ValueError("Either message 'translatable' or 'literal' must be provided.")
