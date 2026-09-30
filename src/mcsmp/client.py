@@ -113,20 +113,30 @@ class Client(AsyncContextManager["Client"]):
 
 	async def close(self) -> None:
 		"""Close the WebSocket connection to the Minecraft server."""
+		await self._close(expected=True)
+
+	async def _close(self, expected: bool) -> None:
 		if self._recv_task:
-			self._recv_task.cancel()
-			try: await self._recv_task
-			except asyncio.CancelledError: ...
-			finally: self._recv_task = None
+			recv_task, self._recv_task = self._recv_task, None
+			# The receive loop closes the connection itself when it ends on its own
+			if recv_task is not asyncio.current_task():
+				recv_task.cancel()
+				try: await recv_task
+				except asyncio.CancelledError: ...
 			logger.debug("Stopped receive loop.")
 
+		closed = False
 		if self._ws:
+			closed = True
 			try: await self._ws.close()
 			finally: self._ws = None
 			logger.info("Closed connection.")
 
 		# Wait for all notification handlers to complete
 		await self.on_notification.wait()
+
+		# Fire after cleanup so handlers can safely reconnect
+		if closed: self.on_connection_closed.fire(expected)
 
 	async def request(self, method: str, params: Any = None) -> Any:
 		"""
@@ -184,9 +194,21 @@ class Client(AsyncContextManager["Client"]):
 		:type notification: Request
 		"""
 
+	@event
+	async def on_connection_closed(self, expected: bool) -> None:
+		"""
+		Event triggered when the connection to the server closes. This will often
+		happen if there is a server restart or something similar, and can be used to
+		automatically reconnect.
+
+		:param expected: True if the connection was closed by calling `close()`, False if it was closed by the server or an error.
+		:type expected: bool
+		"""
+
 	async def _recv_loop(self) -> None:
 		if not self._ws: return
 
+		cancelled = False
 		try:
 			logger.debug("Starting receive loop...")
 			async for message in self._ws:
@@ -201,6 +223,10 @@ class Client(AsyncContextManager["Client"]):
 						await self._handle_item(item)
 				else:
 					await self._handle_item(response)
+		except asyncio.CancelledError:
+			# Cancelled by close(), which handles the rest of the cleanup
+			cancelled = True
+			raise
 		except Exception as e:
 			logger.exception(f"An error occurred in the receive loop.")
 			async with self._lock:
@@ -209,7 +235,7 @@ class Client(AsyncContextManager["Client"]):
 						future.set_exception(RuntimeError(f"An error occurred: {e}"))
 				self._requests.clear()
 		finally:
-			await self.close()
+			if not cancelled: await self._close(expected=False)
 
 	async def _handle_item(self, item: dict[str, Any]):
 		try:
