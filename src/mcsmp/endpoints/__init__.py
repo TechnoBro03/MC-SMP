@@ -6,6 +6,7 @@ from .operators import Operators
 from .players import Players
 from .server_settings import ServerSettings
 from .server import Server
+from .world import World
 
 __all__ = [
 	"AllowList",
@@ -15,5 +16,6 @@ __all__ = [
 	"Operators",
 	"Players",
 	"ServerSettings",
-	"Server"
+	"Server",
+	"World",
 ]
