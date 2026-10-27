@@ -24,6 +24,7 @@ An asynchronous Python client for interacting with Minecraft servers using the M
 	- [Players](#players)
 	- [Server](#server)
 	- [Server Settings](#server-settings)
+	- [World](#world)
 - [Getting Started](#getting-started)
   - [Enable Server Management](#enable-server-management)
   - [Enable TLS](#enable-tls)
@@ -74,6 +75,7 @@ An asynchronous Python client for interacting with Minecraft servers using the M
 | **host**: str | The host/ip address of the server. |
 | **port**: int | The port of the server. |
 | **tls**: bool | Whether TLS is being used for a secure connection. |
+| **protocol_version**: str | The Minecraft Server Management Protocol API version this client implements. |
 
 ## Endpoints
 
@@ -246,6 +248,17 @@ Endpoints and notifications related to the server settings.\
 | set_status_replies() | Set whether the server replies to status requests. | **enable**: bool | **bool** |
 | entity_broadcast_range() | Get the entity broadcast range percentage. | None | **int** |
 | set_entity_broadcast_range() | Set the entity broadcast range percentage. | **percentage_points**: int | **int** |
+
+### World
+
+Notifications related to the world.\n`client.world.*`
+
+| Notification | Description | Event Arguments |
+| --- | --- | --- |
+| upgrade_started | Called when a world upgrade has started. | None |
+| upgrade_progress | Called when world upgrade progress is reported (at most once per second). | **progress**: float |
+| upgrade_finished | Called when a world upgrade has finished. | None |
+| upgrade_failed | Called when a world upgrade has failed. | **reason**: str |
 
 # Getting Started
 

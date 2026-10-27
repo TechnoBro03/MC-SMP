@@ -20,6 +20,9 @@ class Client(AsyncContextManager["Client"]):
 	See `MC SMP Documentation <https://github.com/TechnoBro03/MC-SMP>`_ for more information.
 	"""
 
+	protocol_version: Final[str] = "3.1.0"
+	"""The Minecraft Server Management Protocol API version this client implements."""
+
 	def __init__(self, host: str, port: int, secret: str, *, tls: bool = False, cert: str | None = None, check_hostname: bool = True, timeout: float = 10.0) -> None:
 		"""
 		Initialize an MCSMP client.
@@ -70,6 +73,8 @@ class Client(AsyncContextManager["Client"]):
 		"""The ServerSettings endpoint for managing server settings."""
 		self.server = Server(self)
 		"""The Server endpoint for server-related operations and notifications."""
+		self.world = World(self)
+		"""The World endpoint for world-related notifications."""
 
 	async def connect(self) -> None:
 		"""
